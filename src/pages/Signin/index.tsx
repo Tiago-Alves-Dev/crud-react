@@ -6,8 +6,8 @@ import { AuthUser } from "../../models/authUser";
 import Button from "../../components/button";
 
 export default function Signin() {
-  const [email, setEmail] = useState<string>("");
-  const [senha, setSenha] = useState<string>("");
+  const [des_email, setEmail] = useState<string>("");
+  const [des_senha, setSenha] = useState<string>("");
   const [load, setLoad] = useState<boolean>(false);
   const navigate = useNavigate();
 
@@ -16,8 +16,7 @@ export default function Signin() {
 
     setLoad(true);
 
-    const authUser = (await AuthSignin(email, senha)) as AuthUser;
-    console.log(authUser);
+    const authUser = (await AuthSignin(des_email, des_senha)) as AuthUser;
     if (authUser) {
       setLoad(false);
       return navigate("/dashboard");
@@ -50,7 +49,7 @@ export default function Signin() {
                       Endereço de E-mail
                     </label>
                     <input
-                      defaultValue={email}
+                      defaultValue={des_email}
                       onChange={(e) => [setEmail(e.target.value)]}
                       id="email-address"
                       name="email"
@@ -66,7 +65,7 @@ export default function Signin() {
                       Senha
                     </label>
                     <input
-                      defaultValue={senha}
+                      defaultValue={des_senha}
                       onChange={(e) => [setSenha(e.target.value)]}
                       id="password"
                       name="password"

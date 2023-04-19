@@ -1,4 +1,3 @@
-import { LockClosedIcon } from "@heroicons/react/20/solid";
 import { useState } from "react";
 import { AuthSignin } from "../../services/service-auth";
 import { Link, useNavigate } from "react-router-dom";
@@ -6,6 +5,7 @@ import { AuthUser } from "../../models/authUser";
 import { toast } from "react-toastify";
 import { CreateUser } from "../../services/service-users";
 import Button from "../../components/button";
+import { User } from "../../models/user";
 
 export default function SigninUp() {
   const [showPassword, setShowPassword] = useState<boolean>(false);
@@ -26,10 +26,18 @@ export default function SigninUp() {
     setLoad(true);
 
     CreateUser({ des_email, des_nome, des_senha })
-      .then((res) => {
+      .then(async (res: User) => {
         console.log(res);
         toast.success("Sucesso! Cadastro efetuado com sucesso");
-        setLoad(false);
+
+        const authUser = (await AuthSignin(
+          res.des_email,
+          des_senha
+        )) as AuthUser;
+        if (authUser) {
+          setLoad(false);
+          return navigate("/dashboard");
+        }
       })
       .catch((err) => {
         toast.warn(
@@ -37,11 +45,6 @@ export default function SigninUp() {
         );
         setLoad(false);
       });
-
-    // const authUser = (await AuthSignin(email, senha)) as AuthUser;
-    // if (authUser?.user) {
-    //   return navigate("/dashboard");
-    // }
   };
 
   return (

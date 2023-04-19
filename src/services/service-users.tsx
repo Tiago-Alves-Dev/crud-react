@@ -7,9 +7,11 @@ export const CreateUser = ({
   des_nome,
   des_senha,
 }: User): Promise<User> => {
-  return api.post("/users", {
-    des_nome,
-    des_email,
-    des_senha,
-  });
+  return api
+    .post("/users", {
+      des_nome,
+      des_email,
+      des_senha,
+    })
+    .then((res) => res.data);
 };

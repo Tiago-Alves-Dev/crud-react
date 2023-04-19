@@ -5,13 +5,13 @@ import { Constants } from "../config/constants";
 import { AuthUser } from "../models/authUser";
 
 export const AuthSignin = (
-  email: string,
-  senha: string
+  des_email: string,
+  des_senha: string
 ): Promise<AuthUser | any> => {
   return api
     .post("/auth/login", {
-      des_email: email,
-      des_senha: senha,
+      des_email,
+      des_senha,
     })
     .then((res) => {
       let currentUser = res.data as AuthUser;
