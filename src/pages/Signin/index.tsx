@@ -2,7 +2,7 @@ import { LockClosedIcon } from "@heroicons/react/20/solid";
 import { useState } from "react";
 import { AuthSignin } from "../../services/service-auth";
 import { Link, useNavigate } from "react-router-dom";
-import { AuthUser } from "../../models/authUser";
+import { AuthUserI } from "../../models/authUser";
 import Button from "../../components/button";
 
 export default function Signin() {
@@ -16,10 +16,10 @@ export default function Signin() {
 
     setLoad(true);
 
-    const authUser = (await AuthSignin(des_email, des_senha)) as AuthUser;
+    const authUser: AuthUserI = await AuthSignin(des_email, des_senha);
     if (authUser) {
       setLoad(false);
-      return navigate("/dashboard");
+      return navigate("/client");
     } else {
       setLoad(false);
     }

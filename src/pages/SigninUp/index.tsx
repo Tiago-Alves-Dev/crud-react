@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { AuthSignin } from "../../services/service-auth";
 import { Link, useNavigate } from "react-router-dom";
-import { AuthUser } from "../../models/authUser";
+import { AuthUserI } from "../../models/authUser";
 import { toast } from "react-toastify";
 import { CreateUser } from "../../services/service-users";
 import Button from "../../components/button";
-import { User } from "../../models/user";
+import { UserI } from "../../models/user";
 
 export default function SigninUp() {
   const [showPassword, setShowPassword] = useState<boolean>(false);
@@ -26,17 +26,17 @@ export default function SigninUp() {
     setLoad(true);
 
     CreateUser({ des_email, des_nome, des_senha })
-      .then(async (res: User) => {
+      .then(async (res: UserI) => {
         console.log(res);
         toast.success("Sucesso! Cadastro efetuado com sucesso");
 
         const authUser = (await AuthSignin(
           res.des_email,
           des_senha
-        )) as AuthUser;
+        )) as AuthUserI;
         if (authUser) {
           setLoad(false);
-          return navigate("/dashboard");
+          return navigate("/client");
         }
       })
       .catch((err) => {

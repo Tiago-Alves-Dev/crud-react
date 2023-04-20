@@ -1,9 +1,8 @@
-import { LockClosedIcon } from "@heroicons/react/20/solid";
 import React from "react";
 
 export interface CButton {
   text: string;
-  onClick?: () => {};
+  onClick?: any;
   type: "button" | "submit" | "reset" | undefined;
   load: boolean;
   Icon?: any;
