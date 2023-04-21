@@ -7,8 +7,14 @@ const api = axios.create({
   baseURL: REACT_APP_BASE_URL,
 });
 
-const token = JSON.parse(localStorage.getItem(Constants.currentUser) || "");
-
-api.defaults.headers.common["Authorization"] = `Bearer ${token.access_token}`;
+api.interceptors.request.use(function (config) {
+  var token: any;
+  const cuurrentUser = localStorage.getItem(Constants.currentUser);
+  if (cuurrentUser) {
+    token = JSON.parse(localStorage.getItem(Constants.currentUser) || "");
+  }
+  config.headers.Authorization = token ? `Bearer ${token.access_token}` : "";
+  return config;
+});
 
 export default api;
