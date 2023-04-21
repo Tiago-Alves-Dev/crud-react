@@ -11,9 +11,9 @@ export interface ItemI {
   sale?: SalesI;
 
   // default
-  deletedAt?: string;
-  createdAt?: string;
-  updatedAt?: string;
+  deletedAt?: Date;
+  createdAt?: Date;
+  updatedAt?: Date;
   createdBy?: string;
   updatedBy?: string;
   deletedBy?: string;

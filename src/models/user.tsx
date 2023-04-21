@@ -6,9 +6,9 @@ export interface UserI {
   flg_inativo?: boolean;
 
   // default
-  createdBy?: string;
-  deletedAt?: string;
-  createdAt?: string;
+  createdBy?: Date;
+  deletedAt?: Date;
+  createdAt?: Date;
   updatedAt?: string;
   updatedBy?: string;
   deletedBy?: string;

@@ -66,7 +66,7 @@ export default function Client() {
           setLoad(false);
         });
     } else {
-      UpdateClient(client)
+      UpdateClient(client.cod_cliente, client)
         .then(() => {
           toast.success("Sucesso! Cliente alterado com sucesso");
           setLoad(false);

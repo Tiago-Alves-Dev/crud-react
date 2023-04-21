@@ -8,6 +8,7 @@ import { ColumnsI } from "../../../models/columnsTable";
 import moment from "moment";
 import Button from "../../../components/button";
 import Datepicker from "react-tailwindcss-datepicker";
+import { ArrowsUpDownIcon } from "@heroicons/react/20/solid";
 
 export interface QueryI {
   startDate: string;
@@ -18,24 +19,25 @@ export default function ReportSales() {
   const [data, setData] = useState<any>([]);
   const [sales, setSales] = useState<SalesI>({} as SalesI);
   const [showModalItem, setShowModalItem] = useState(false);
+  const [order, setOrder] = useState<string>("DESC");
   const [value, setValue] = useState({
     startDate: new Date(),
     endDate: new Date(),
   });
 
   const columns: Array<ColumnsI> = [
-    { text: "Código da Venda", sort: true, colum: "cod_venda" },
+    { text: "Código da Venda", sort: false, colum: "cod_venda" },
     { text: "Dt da Venda", sort: true, colum: "dta_venda" },
-    { text: "Valor total da Venda", sort: true, colum: "val_total_venda" },
+    { text: "Valor total da Venda", sort: false, colum: "val_total_venda" },
     { text: "Cd do Cliente", sort: false, colum: "client.cod_cliente" },
-    { text: "Nome", sort: false, colum: "client.des_nome" },
-    { text: "Cidade", sort: true, colum: "client.des_cidade" },
-    { text: "UF", sort: true, colum: "client.des_uf" },
-    { text: "Telefone", sort: true, colum: "client.des_telefone" },
+    { text: "Nome", sort: true, colum: "client.des_nome" },
+    { text: "Cidade", sort: false, colum: "client.des_cidade" },
+    { text: "UF", sort: false, colum: "client.des_uf" },
+    { text: "Telefone", sort: false, colum: "client.des_telefone" },
   ];
 
   const columnsItem: Array<ColumnsI> = [
-    { text: "Código do Item", sort: false, colum: "cod_venda" },
+    { text: "Código do Item", sort: false, colum: "cod_item" },
     { text: "Nome do Produto", sort: true, colum: "des_produto" },
     { text: "Valor Unitário", sort: false, colum: "val_unitario" },
     { text: "Quantidade", sort: false, colum: "qtd_itens" },
@@ -59,20 +61,44 @@ export default function ReportSales() {
   const saleSelected = (item: SalesI) => {
     if (item.itens != undefined) {
       item.itens.map((item) => {
-        item.val_total = "R$" + formatReal(item.val_total);
-        item.val_unitario = "R$" + formatReal(item.val_unitario);
+        item.val_total = item.val_total.toLocaleString("pt-BR", {
+          style: "currency",
+          currency: "BRL",
+        });
+        item.val_unitario = item.val_unitario.toLocaleString("pt-BR", {
+          style: "currency",
+          currency: "BRL",
+        });
       });
     }
     setSales(item);
     setShowModalItem(true);
   };
 
-  const formatReal = (int: number) => {
-    var tmp = int + "";
-    tmp = tmp.replace(/([0-9]{2})$/g, ",$1");
-    if (tmp.length > 6) tmp = tmp.replace(/([0-9]{3}),([0-9]{2}$)/g, ".$1,$2");
+  const sort = (colum: string) => {
+    if (order === "ASC") {
+      setData(data.sort((a: any, b: any) => (a[colum] > b[colum] ? 1 : -1)));
+    } else {
+      setData(data.sort((a: any, b: any) => (a[colum] > b[colum] ? -1 : 1)));
+    }
+  };
 
-    return tmp;
+  const sortClient = (colum: string) => {
+    colum = colum.replace("client.", "");
+
+    if (order === "ASC") {
+      setData(
+        data.sort((a: any, b: any) =>
+          a.client[colum] > b.client[colum] ? 1 : -1
+        )
+      );
+    } else {
+      setData(
+        data.sort((a: any, b: any) =>
+          a.client[colum] > b.client[colum] ? -1 : 1
+        )
+      );
+    }
   };
 
   const handleValueChange = (newValue: any) => {
@@ -107,7 +133,22 @@ export default function ReportSales() {
             <tr>
               {columns.map((item, i) => (
                 <th key={i} scope="col" className="px-6 py-3">
-                  {item.text}
+                  {!item.sort ? (
+                    item.text
+                  ) : (
+                    <div
+                      className="flex items-center cursor-pointer gap-3"
+                      onClick={() => {
+                        order == "DESC" ? setOrder("ASC") : setOrder("DESC");
+                        item.colum.search("client") >= 0
+                          ? sortClient(item.colum)
+                          : sort(item.colum);
+                      }}
+                    >
+                      {item.text}
+                      <ArrowsUpDownIcon className="w-5 h-5 ml-1" />
+                    </div>
+                  )}
                 </th>
               ))}
               <th>Item</th>

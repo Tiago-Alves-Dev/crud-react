@@ -7,9 +7,9 @@ export interface ClientI {
   des_uf: string;
   des_telefone: string;
   des_contato: string;
-  val_venda_acumulado?: number;
-  qtd_venda_pedidos?: number;
-  dta_ult_pedido?: string;
+  val_venda_acumulado?: number | any;
+  qtd_venda_pedidos?: number | any;
+  dta_ult_pedido?: Date | any;
   flg_inativo?: boolean;
 
   // default

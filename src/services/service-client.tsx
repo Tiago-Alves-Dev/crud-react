@@ -18,8 +18,9 @@ export const CreateClient = (data: ClientI): Promise<ClientI> => {
   return api.post("/clients", data).then((res) => res.data);
 };
 
-export const UpdateClient = (data: ClientI): Promise<ClientI> => {
-  return api
-    .patch("/clients/" + data.cod_cliente, data)
-    .then((res) => res.data);
+export const UpdateClient = (
+  cod_cliente: string,
+  data: ClientI
+): Promise<ClientI> => {
+  return api.patch("/clients/" + cod_cliente, data).then((res) => res.data);
 };
