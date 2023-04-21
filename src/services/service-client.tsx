@@ -6,29 +6,20 @@ export const GetAllClient = (): Promise<[ClientI]> => {
   return api.get("/clients").then((res) => res.data);
 };
 
+export const GetAllClientActives = (): Promise<[ClientI]> => {
+  return api.get("/clients/active").then((res) => res.data);
+};
+
 export const DeleteClient = (cod_cliente: string | any): Promise<void> => {
   return api.delete("/clients/" + cod_cliente).then((res) => res.data);
 };
 
-export const CreateClient = ({
-  des_nome,
-  des_endereco,
-  num_endereco,
-  des_cidade,
-  des_uf,
-  des_telefone,
-  des_contato,
-}: ClientI | any): Promise<ClientI> => {
-  console.log(des_nome);
+export const CreateClient = (data: ClientI): Promise<ClientI> => {
+  return api.post("/clients", data).then((res) => res.data);
+};
+
+export const UpdateClient = (data: ClientI): Promise<ClientI> => {
   return api
-    .post("/clients", {
-      des_nome,
-      des_endereco,
-      num_endereco,
-      des_cidade,
-      des_uf,
-      des_telefone,
-      des_contato,
-    })
+    .patch("/clients/" + data.cod_cliente, data)
     .then((res) => res.data);
 };

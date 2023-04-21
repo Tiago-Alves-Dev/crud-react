@@ -1,27 +1,27 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import HeaderApp from "../../components/header";
 import { ColumnsI } from "../../models/columnsTable";
 import {
   CreateClient,
   DeleteClient,
   GetAllClient,
+  UpdateClient,
 } from "../../services/service-client";
 import { ClientI } from "../../models/client";
 import { toast } from "react-toastify";
 import moment from "moment";
-import {
-  PencilSquareIcon,
-  PhotoIcon,
-  TrashIcon,
-  UserCircleIcon,
-} from "@heroicons/react/20/solid";
+import { PencilSquareIcon, TrashIcon } from "@heroicons/react/20/solid";
+import InputMask from "react-input-mask";
+import CurrencyInput from "react-currency-input-field";
+import Button from "../../components/button";
 
 export default function Client() {
   const [showModalUpOrCreate, setShowModalUpOrCreate] = useState(false);
   const [showModalDelete, setShowModalDelete] = useState(false);
   const [data, setData] = useState<any>([]);
-  const [client, setClient] = useState<ClientI>();
+  const [client, setClient] = useState<ClientI>({} as ClientI);
   const [titleModal, setTitleModal] = useState<string>();
+  const [load, setLoad] = useState<boolean>(false);
 
   const columns: Array<ColumnsI> = [
     { text: "Nome", sort: false, colum: "des_nome" },
@@ -33,7 +33,9 @@ export default function Client() {
 
   const getall = () => {
     GetAllClient()
-      .then((res: [ClientI]) => setData(res))
+      .then((res: [ClientI]) => {
+        setData(res);
+      })
       .catch((err) => {
         toast.warn(
           err.response?.data.message ? err.response.data.message : err.message
@@ -45,43 +47,54 @@ export default function Client() {
     getall();
   }, []);
 
-  const creatAndUpdateClient = () => {
-    console.log(client);
-    if (!client?.cod_cliente) {
-      console.log("vazio");
+  const creatAndUpdateClient = (event: any) => {
+    event.preventDefault();
+
+    if (!client.cod_cliente) {
+      setLoad(true);
+      CreateClient(client)
+        .then(() => {
+          toast.success("Sucesso! Cliente cadastrado com sucesso");
+          setLoad(false);
+          setShowModalUpOrCreate(false);
+          getall();
+        })
+        .catch((err) => {
+          toast.warn(
+            err.response?.data.message ? err.response.data.message : err.message
+          );
+          setLoad(false);
+        });
     } else {
-      console.log("cheio");
-      // CreateClient({
-      //   des_nome: client?.des_nome,
-      //   des_endereco: client?.des_endereco,
-      //   num_endereco: client?.num_endereco,
-      //   des_cidade: client?.des_cidade,
-      //   des_uf: client?.des_uf,
-      //   des_telefone: client?.des_telefone,
-      //   des_contato: client?.des_contato,
-      // })
-      //   .then(() => {
-      //     toast.success("Sucesso! Cliente cadastrado com sucesso");
-      //     getall();
-      //   })
-      //   .catch((err) => {
-      //     toast.warn(
-      //       err.response?.data.message ? err.response.data.message : err.message
-      //     );
-      //   });
+      UpdateClient(client)
+        .then(() => {
+          toast.success("Sucesso! Cliente alterado com sucesso");
+          setLoad(false);
+          setShowModalUpOrCreate(false);
+          getall();
+        })
+        .catch((err) => {
+          toast.warn(
+            err.response?.data.message ? err.response.data.message : err.message
+          );
+          setLoad(false);
+        });
     }
   };
 
   const deleteClient = () => {
-    DeleteClient(client?.cod_cliente)
+    setLoad(true);
+    DeleteClient(client.cod_cliente)
       .then(() => {
         toast.success("Sucesso! Cliente removido com sucesso");
+        setLoad(false);
         getall();
       })
       .catch((err) => {
         toast.warn(
           err.response?.data.message ? err.response.data.message : err.message
         );
+        setLoad(false);
       });
 
     setShowModalDelete(false);
@@ -135,7 +148,9 @@ export default function Client() {
                   {item.des_contato}
                 </td>
                 <td className="px-6 py-4" key={++i}>
-                  {moment(item.dta_ult_pedido).format("DD/MM/YYYY")}
+                  {item.dta_ult_pedido
+                    ? moment(item.dta_ult_pedido).format("DD/MM/YYYY")
+                    : item.dta_ult_pedido}
                 </td>
                 <td className="px-6 py-4" key={++i}>
                   {moment(item.createdAt).format("DD/MM/YYYY")}
@@ -158,7 +173,7 @@ export default function Client() {
                       onClick={() => {
                         setClient(item);
                         setShowModalUpOrCreate(true);
-                        setTitleModal("Alterar cliente" + client?.des_nome);
+                        setTitleModal("Alterar cliente " + item.des_nome);
                       }}
                       className="cursor-pointer w-8 h-8 ml-1 font-medium text-blue-600 dark:text-blue-500 hover:underline"
                     />
@@ -182,466 +197,338 @@ export default function Client() {
       {showModalUpOrCreate ? (
         <>
           <div className="justify-center items-center flex overflow-x-hidden overflow-y-auto fixed inset-0 z-50 outline-none focus:outline-none">
-            <div className="relative w-auto my-6 mx-auto max-w-3xl">
+            <div className="relative w-auto my-6 mx-auto max-w-4xl">
               {/*content*/}
               <div className="border-0 rounded-lg shadow-lg relative flex flex-col w-full bg-white outline-none focus:outline-none">
                 {/*header*/}
                 <div className="flex items-start justify-between p-5 border-b border-solid border-slate-200 rounded-t">
-                  <h3 className="text-3xl font-semibold">{titleModal} teste</h3>
+                  <h3 className="text-3xl font-semibold">{titleModal}</h3>
                   <button
-                    className="p-1 ml-auto bg-transparent border-0 text-black opacity-5 float-right text-3xl leading-none font-semibold outline-none focus:outline-none"
+                    className="p-1 ml-auto bg-transparent border-0 text-black float-right text-3xl leading-none font-semibold outline-none focus:outline-none"
                     onClick={() => setShowModalUpOrCreate(false)}
                   >
-                    <span className="bg-transparent text-black opacity-5 h-6 w-6 text-2xl block outline-none focus:outline-none">
+                    <span className="bg-transparent text-black opacity-60 h-6 w-6 text-2xl block outline-none focus:outline-none">
                       ×
                     </span>
                   </button>
                 </div>
                 {/*body*/}
-                <form>
-                  <div className="space-y-12">
-                    <div className="border-b border-gray-900/10 pb-12">
-                      <h2 className="text-base font-semibold leading-7 text-gray-900">
-                        Profile
-                      </h2>
-                      <p className="mt-1 text-sm leading-6 text-gray-600">
-                        This information will be displayed publicly so be
-                        careful what you share.
-                      </p>
-
-                      <div className="mt-10 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
-                        <div className="sm:col-span-4">
-                          <label
-                            htmlFor="username"
-                            className="block text-sm font-medium leading-6 text-gray-900"
-                          >
-                            Username
-                          </label>
-                          <div className="mt-2">
-                            <div className="flex rounded-md shadow-sm ring-1 ring-inset ring-gray-300 focus-within:ring-2 focus-within:ring-inset focus-within:ring-indigo-600 sm:max-w-md">
-                              <span className="flex select-none items-center pl-3 text-gray-500 sm:text-sm">
-                                workcation.com/
-                              </span>
-                              <input
-                                type="text"
-                                name="username"
-                                id="username"
-                                autoComplete="username"
-                                className="block flex-1 border-0 bg-transparent py-1.5 pl-1 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6"
-                                placeholder="janesmith"
-                              />
-                            </div>
-                          </div>
+                <form
+                  className="h-auto max-h-100 overflow-auto"
+                  onSubmit={creatAndUpdateClient}
+                >
+                  <div className="px-8 my-3">
+                    <div className="mt-10 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6 items-end">
+                      <div className="sm:col-span-4">
+                        <label
+                          htmlFor="name"
+                          className="block text-sm font-medium leading-6 text-gray-900"
+                        >
+                          Nome Completo
+                        </label>
+                        <div className="mt-2">
+                          <input
+                            defaultValue={client.des_nome}
+                            onChange={(e) => [
+                              (client.des_nome = e.target.value),
+                            ]}
+                            type="text"
+                            name="name"
+                            id="name"
+                            required
+                            className="p-1.5 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                          />
                         </div>
+                      </div>
 
-                        <div className="col-span-full">
-                          <label
-                            htmlFor="about"
-                            className="block text-sm font-medium leading-6 text-gray-900"
-                          >
-                            About
-                          </label>
-                          <div className="mt-2">
-                            <textarea
-                              id="about"
-                              name="about"
-                              rows={3}
-                              className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
-                              defaultValue={""}
+                      <div className="sm:col-span-2">
+                        <div className="relative flex gap-x-3 ">
+                          <div className="flex h-6 items-center">
+                            <input
+                              defaultChecked={client.flg_inativo}
+                              onChange={(e) => [
+                                (client.flg_inativo = e.target.checked),
+                              ]}
+                              id="inactive"
+                              name="inactive"
+                              type="checkbox"
+                              className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-600"
                             />
                           </div>
-                          <p className="mt-3 text-sm leading-6 text-gray-600">
-                            Write a few sentences about yourself.
-                          </p>
-                        </div>
-
-                        <div className="col-span-full">
-                          <label
-                            htmlFor="photo"
-                            className="block text-sm font-medium leading-6 text-gray-900"
-                          >
-                            Photo
-                          </label>
-                          <div className="mt-2 flex items-center gap-x-3">
-                            <UserCircleIcon
-                              className="h-12 w-12 text-gray-300"
-                              aria-hidden="true"
-                            />
-                            <button
-                              type="button"
-                              className="rounded-md bg-white px-2.5 py-1.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
+                          <div className="text-sm leading-6">
+                            <label
+                              htmlFor="inactive"
+                              className="font-medium text-gray-900"
                             >
-                              Change
-                            </button>
-                          </div>
-                        </div>
-
-                        <div className="col-span-full">
-                          <label
-                            htmlFor="cover-photo"
-                            className="block text-sm font-medium leading-6 text-gray-900"
-                          >
-                            Cover photo
-                          </label>
-                          <div className="mt-2 flex justify-center rounded-lg border border-dashed border-gray-900/25 px-6 py-10">
-                            <div className="text-center">
-                              <PhotoIcon
-                                className="mx-auto h-12 w-12 text-gray-300"
-                                aria-hidden="true"
-                              />
-                              <div className="mt-4 flex text-sm leading-6 text-gray-600">
-                                <label
-                                  htmlFor="file-upload"
-                                  className="relative cursor-pointer rounded-md bg-white font-semibold text-indigo-600 focus-within:outline-none focus-within:ring-2 focus-within:ring-indigo-600 focus-within:ring-offset-2 hover:text-indigo-500"
-                                >
-                                  <span>Upload a file</span>
-                                  <input
-                                    id="file-upload"
-                                    name="file-upload"
-                                    type="file"
-                                    className="sr-only"
-                                  />
-                                </label>
-                                <p className="pl-1">or drag and drop</p>
-                              </div>
-                              <p className="text-xs leading-5 text-gray-600">
-                                PNG, JPG, GIF up to 10MB
-                              </p>
-                            </div>
+                              Inativo
+                            </label>
+                            <p className="text-gray-500">
+                              Se selecionado inativo.
+                            </p>
                           </div>
                         </div>
                       </div>
-                    </div>
 
-                    <div className="border-b border-gray-900/10 pb-12">
-                      <h2 className="text-base font-semibold leading-7 text-gray-900">
-                        Personal Information
-                      </h2>
-                      <p className="mt-1 text-sm leading-6 text-gray-600">
-                        Use a permanent address where you can receive mail.
-                      </p>
-
-                      <div className="mt-10 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
-                        <div className="sm:col-span-3">
-                          <label
-                            htmlFor="first-name"
-                            className="block text-sm font-medium leading-6 text-gray-900"
-                          >
-                            First name
-                          </label>
-                          <div className="mt-2">
-                            <input
-                              type="text"
-                              name="first-name"
-                              id="first-name"
-                              autoComplete="given-name"
-                              className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
-                            />
-                          </div>
-                        </div>
-
-                        <div className="sm:col-span-3">
-                          <label
-                            htmlFor="last-name"
-                            className="block text-sm font-medium leading-6 text-gray-900"
-                          >
-                            Last name
-                          </label>
-                          <div className="mt-2">
-                            <input
-                              type="text"
-                              name="last-name"
-                              id="last-name"
-                              autoComplete="family-name"
-                              className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
-                            />
-                          </div>
-                        </div>
-
-                        <div className="sm:col-span-4">
-                          <label
-                            htmlFor="email"
-                            className="block text-sm font-medium leading-6 text-gray-900"
-                          >
-                            Email address
-                          </label>
-                          <div className="mt-2">
-                            <input
-                              id="email"
-                              name="email"
-                              type="email"
-                              autoComplete="email"
-                              className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
-                            />
-                          </div>
-                        </div>
-
-                        <div className="sm:col-span-3">
-                          <label
-                            htmlFor="country"
-                            className="block text-sm font-medium leading-6 text-gray-900"
-                          >
-                            Country
-                          </label>
-                          <div className="mt-2">
-                            <select
-                              id="country"
-                              name="country"
-                              autoComplete="country-name"
-                              className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:max-w-xs sm:text-sm sm:leading-6"
-                            >
-                              <option>United States</option>
-                              <option>Canada</option>
-                              <option>Mexico</option>
-                            </select>
-                          </div>
-                        </div>
-
-                        <div className="col-span-full">
-                          <label
-                            htmlFor="street-address"
-                            className="block text-sm font-medium leading-6 text-gray-900"
-                          >
-                            Street address
-                          </label>
-                          <div className="mt-2">
-                            <input
-                              type="text"
-                              name="street-address"
-                              id="street-address"
-                              autoComplete="street-address"
-                              className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
-                            />
-                          </div>
-                        </div>
-
-                        <div className="sm:col-span-2 sm:col-start-1">
-                          <label
-                            htmlFor="city"
-                            className="block text-sm font-medium leading-6 text-gray-900"
-                          >
-                            City
-                          </label>
-                          <div className="mt-2">
-                            <input
-                              type="text"
-                              name="city"
-                              id="city"
-                              autoComplete="address-level2"
-                              className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
-                            />
-                          </div>
-                        </div>
-
-                        <div className="sm:col-span-2">
-                          <label
-                            htmlFor="region"
-                            className="block text-sm font-medium leading-6 text-gray-900"
-                          >
-                            State / Province
-                          </label>
-                          <div className="mt-2">
-                            <input
-                              type="text"
-                              name="region"
-                              id="region"
-                              autoComplete="address-level1"
-                              className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
-                            />
-                          </div>
-                        </div>
-
-                        <div className="sm:col-span-2">
-                          <label
-                            htmlFor="postal-code"
-                            className="block text-sm font-medium leading-6 text-gray-900"
-                          >
-                            ZIP / Postal code
-                          </label>
-                          <div className="mt-2">
-                            <input
-                              type="text"
-                              name="postal-code"
-                              id="postal-code"
-                              autoComplete="postal-code"
-                              className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
-                            />
-                          </div>
+                      <div className="sm:col-span-3">
+                        <label
+                          htmlFor="telephone"
+                          className="block text-sm font-medium leading-6 text-gray-900"
+                        >
+                          Telefone
+                        </label>
+                        <div className="mt-2">
+                          <InputMask
+                            defaultValue={client.des_telefone}
+                            onChange={(e) => [
+                              (client.des_telefone = e.target.value),
+                            ]}
+                            mask="(99) 9999-9999"
+                            type="text"
+                            name="telephone"
+                            id="telephone"
+                            required
+                            className="p-1.5 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                          />
                         </div>
                       </div>
-                    </div>
 
-                    <div className="border-b border-gray-900/10 pb-12">
-                      <h2 className="text-base font-semibold leading-7 text-gray-900">
-                        Notifications
-                      </h2>
-                      <p className="mt-1 text-sm leading-6 text-gray-600">
-                        We'll always let you know about important changes, but
-                        you pick what else you want to hear about.
-                      </p>
+                      <div className="sm:col-span-3">
+                        <label
+                          htmlFor="contact"
+                          className="block text-sm font-medium leading-6 text-gray-900"
+                        >
+                          Contato
+                        </label>
+                        <div className="mt-2">
+                          <InputMask
+                            defaultValue={client.des_contato}
+                            onChange={(e) => [
+                              (client.des_contato = e.target.value),
+                            ]}
+                            mask="(99) 99999-9999"
+                            type="text"
+                            name="contact"
+                            id="contact"
+                            required
+                            className="p-1.5 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                          />
+                        </div>
+                      </div>
 
-                      <div className="mt-10 space-y-10">
-                        <fieldset>
-                          <legend className="text-sm font-semibold leading-6 text-gray-900">
-                            By Email
-                          </legend>
-                          <div className="mt-6 space-y-6">
-                            <div className="relative flex gap-x-3">
-                              <div className="flex h-6 items-center">
-                                <input
-                                  id="comments"
-                                  name="comments"
-                                  type="checkbox"
-                                  className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-600"
-                                />
-                              </div>
-                              <div className="text-sm leading-6">
-                                <label
-                                  htmlFor="comments"
-                                  className="font-medium text-gray-900"
-                                >
-                                  Comments
-                                </label>
-                                <p className="text-gray-500">
-                                  Get notified when someones posts a comment on
-                                  a posting.
-                                </p>
-                              </div>
-                            </div>
-                            <div className="relative flex gap-x-3">
-                              <div className="flex h-6 items-center">
-                                <input
-                                  id="candidates"
-                                  name="candidates"
-                                  type="checkbox"
-                                  className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-600"
-                                />
-                              </div>
-                              <div className="text-sm leading-6">
-                                <label
-                                  htmlFor="candidates"
-                                  className="font-medium text-gray-900"
-                                >
-                                  Candidates
-                                </label>
-                                <p className="text-gray-500">
-                                  Get notified when a candidate applies for a
-                                  job.
-                                </p>
-                              </div>
-                            </div>
-                            <div className="relative flex gap-x-3">
-                              <div className="flex h-6 items-center">
-                                <input
-                                  id="offers"
-                                  name="offers"
-                                  type="checkbox"
-                                  className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-600"
-                                />
-                              </div>
-                              <div className="text-sm leading-6">
-                                <label
-                                  htmlFor="offers"
-                                  className="font-medium text-gray-900"
-                                >
-                                  Offers
-                                </label>
-                                <p className="text-gray-500">
-                                  Get notified when a candidate accepts or
-                                  rejects an offer.
-                                </p>
-                              </div>
-                            </div>
-                          </div>
-                        </fieldset>
-                        <fieldset>
-                          <legend className="text-sm font-semibold leading-6 text-gray-900">
-                            Push Notifications
-                          </legend>
-                          <p className="mt-1 text-sm leading-6 text-gray-600">
-                            These are delivered via SMS to your mobile phone.
-                          </p>
-                          <div className="mt-6 space-y-6">
-                            <div className="flex items-center gap-x-3">
-                              <input
-                                id="push-everything"
-                                name="push-notifications"
-                                type="radio"
-                                className="h-4 w-4 border-gray-300 text-indigo-600 focus:ring-indigo-600"
-                              />
-                              <label
-                                htmlFor="push-everything"
-                                className="block text-sm font-medium leading-6 text-gray-900"
-                              >
-                                Everything
-                              </label>
-                            </div>
-                            <div className="flex items-center gap-x-3">
-                              <input
-                                id="push-email"
-                                name="push-notifications"
-                                type="radio"
-                                className="h-4 w-4 border-gray-300 text-indigo-600 focus:ring-indigo-600"
-                              />
-                              <label
-                                htmlFor="push-email"
-                                className="block text-sm font-medium leading-6 text-gray-900"
-                              >
-                                Same as email
-                              </label>
-                            </div>
-                            <div className="flex items-center gap-x-3">
-                              <input
-                                id="push-nothing"
-                                name="push-notifications"
-                                type="radio"
-                                className="h-4 w-4 border-gray-300 text-indigo-600 focus:ring-indigo-600"
-                              />
-                              <label
-                                htmlFor="push-nothing"
-                                className="block text-sm font-medium leading-6 text-gray-900"
-                              >
-                                No push notifications
-                              </label>
-                            </div>
-                          </div>
-                        </fieldset>
+                      <div className="col-span-full">
+                        <label
+                          htmlFor="address"
+                          className="block text-sm font-medium leading-6 text-gray-900"
+                        >
+                          Endereço
+                        </label>
+                        <div className="mt-2">
+                          <input
+                            defaultValue={client.des_endereco}
+                            onChange={(e) => [
+                              (client.des_endereco = e.target.value),
+                            ]}
+                            type="text"
+                            name="address"
+                            id="address"
+                            required
+                            className="p-1.5 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="sm:col-span-2 sm:col-start-1">
+                        <label
+                          htmlFor="number"
+                          className="block text-sm font-medium leading-6 text-gray-900"
+                        >
+                          Número
+                        </label>
+                        <div className="mt-2">
+                          <input
+                            defaultValue={client.num_endereco}
+                            onChange={(e) => [
+                              (client.num_endereco = +e.target.value),
+                            ]}
+                            type="number"
+                            name="number"
+                            id="number"
+                            required
+                            className="p-1.5 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="sm:col-span-2">
+                        <label
+                          htmlFor="city"
+                          className="block text-sm font-medium leading-6 text-gray-900"
+                        >
+                          Cidade
+                        </label>
+                        <div className="mt-2">
+                          <input
+                            defaultValue={client.des_cidade}
+                            onChange={(e) => [
+                              (client.des_cidade = e.target.value),
+                            ]}
+                            type="text"
+                            name="city"
+                            id="city"
+                            required
+                            className="p-1.5 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="sm:col-span-2">
+                        <label
+                          htmlFor="uf"
+                          className="p-1.5 block text-sm font-medium leading-6 text-gray-900"
+                        >
+                          UF
+                        </label>
+                        <div className="mt-2">
+                          <input
+                            defaultValue={client.des_uf}
+                            onChange={(e) => [(client.des_uf = e.target.value)]}
+                            type="text"
+                            name="uf"
+                            id="uf"
+                            required
+                            maxLength={2}
+                            className="p-1.5 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="sm:col-span-2 sm:col-start-1">
+                        <label
+                          htmlFor="accumulated"
+                          className="block text-sm font-medium leading-6 text-gray-900"
+                        >
+                          Valor Acumulado
+                        </label>
+                        <div className="mt-2">
+                          <CurrencyInput
+                            defaultValue={client.val_venda_acumulado}
+                            name="accumulated"
+                            id="accumulated"
+                            disabled={true}
+                            intlConfig={{ locale: "pt-BR", currency: "BRL" }}
+                            className="p-1.5 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="sm:col-span-2">
+                        <label
+                          htmlFor="qtd-sales"
+                          className="block text-sm font-medium leading-6 text-gray-900"
+                        >
+                          Quantidade de Pedidos de Vendas
+                        </label>
+                        <div className="mt-2">
+                          <input
+                            defaultValue={client.qtd_venda_pedidos}
+                            type="number"
+                            name="qtd-sales"
+                            id="qtd-sales"
+                            disabled={true}
+                            className="p-1.5 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="sm:col-span-2">
+                        <label
+                          htmlFor="dt-order"
+                          className="p-1.5 block text-sm font-medium leading-6 text-gray-900"
+                        >
+                          Data do último pedido
+                        </label>
+                        <div className="dt-order">
+                          <input
+                            defaultValue={
+                              client.dta_ult_pedido
+                                ? moment(client.dta_ult_pedido).format(
+                                    "DD/MM/YYYY"
+                                  )
+                                : client.dta_ult_pedido
+                            }
+                            type="text"
+                            name="dt-order"
+                            id="dt-order"
+                            disabled={true}
+                            className="p-1.5 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="sm:col-span-3">
+                        <label
+                          htmlFor="dt-order"
+                          className="p-1.5 block text-sm font-medium leading-6 text-gray-900"
+                        >
+                          Data de cadastrado
+                        </label>
+                        <div className="dt-order">
+                          <input
+                            defaultValue={
+                              client.createdAt
+                                ? moment(client.createdAt).format("DD/MM/YYYY")
+                                : client.createdAt
+                            }
+                            type="text"
+                            name="dt-order"
+                            id="dt-order"
+                            disabled={true}
+                            className="p-1.5 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="sm:col-span-3">
+                        <label
+                          htmlFor="dt-order"
+                          className="p-1.5 block text-sm font-medium leading-6 text-gray-900"
+                        >
+                          Data de alteração
+                        </label>
+                        <div className="dt-order">
+                          <input
+                            defaultValue={
+                              client.updatedAt
+                                ? moment(client.updatedAt).format("DD/MM/YYYY")
+                                : client.updatedAt
+                            }
+                            type="text"
+                            name="dt-order"
+                            id="dt-order"
+                            disabled={true}
+                            className="p-1.5 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                          />
+                        </div>
                       </div>
                     </div>
                   </div>
-
-                  <div className="mt-6 flex items-center justify-end gap-x-6">
-                    <button
+                  <div className="flex items-center justify-end p-6 border-t border-solid border-slate-200 rounded-b">
+                    <Button
+                      text="Cancelar"
                       type="button"
-                      className="text-sm font-semibold leading-6 text-gray-900"
-                    >
-                      Cancel
-                    </button>
-                    <button
+                      load={false}
+                      onClick={() => setShowModalUpOrCreate(false)}
+                      classButoon="bg-red-500 text-white active:bg-red-600 font-bold uppercase text-sm px-6 py-3 rounded shadow hover:shadow-lg outline-none focus:outline-none mr-1 mb-1 ease-linear transition-all duration-150"
+                    />
+                    <Button
+                      text={!client.cod_cliente ? "Cadastrar" : "Alterar"}
                       type="submit"
-                      className="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-                    >
-                      Save
-                    </button>
+                      load={load}
+                      classButoon="bg-blue-500 text-white active:bg-blue-600 font-bold uppercase text-sm px-6 py-3 rounded shadow hover:shadow-lg outline-none focus:outline-none mr-1 mb-1 ease-linear transition-all duration-150"
+                    />
                   </div>
                 </form>
                 {/*footer*/}
-                <div className="flex items-center justify-center p-6 border-t border-solid border-slate-200 rounded-b">
-                  <button
-                    className=" bg-red-500 text-white active:bg-red-600 font-bold uppercase text-sm px-6 py-3 rounded shadow hover:shadow-lg outline-none focus:outline-none mr-1 mb-1 ease-linear transition-all duration-150"
-                    type="button"
-                    onClick={() => setShowModalUpOrCreate(false)}
-                  >
-                    Cancelar
-                  </button>
-                  <button
-                    className="bg-emerald-500 text-white active:bg-emerald-600 font-bold uppercase text-sm px-6 py-3 rounded shadow hover:shadow-lg outline-none focus:outline-none mr-1 mb-1 ease-linear transition-all duration-150"
-                    type="button"
-                    onClick={() => creatAndUpdateClient()}
-                  >
-                    Confirmar
-                  </button>
-                </div>
               </div>
             </div>
           </div>
@@ -673,23 +560,23 @@ export default function Client() {
                     ></path>
                   </svg>
                   <span className="font-medium">Deletar Cliente!</span> Tem
-                  certeza que deseja excluir o cliente {client?.des_nome}?
+                  certeza que deseja excluir o cliente {client.des_nome}?
                 </div>
                 <div className="flex items-center justify-center p-6 border-t border-solid border-slate-200 rounded-b">
-                  <button
-                    className=" bg-red-500 text-white active:bg-red-600 font-bold uppercase text-sm px-6 py-3 rounded shadow hover:shadow-lg outline-none focus:outline-none mr-1 mb-1 ease-linear transition-all duration-150"
+                  <Button
+                    text="Cancelar"
                     type="button"
+                    load={false}
                     onClick={() => setShowModalDelete(false)}
-                  >
-                    Cancelar
-                  </button>
-                  <button
-                    className="bg-emerald-500 text-white active:bg-emerald-600 font-bold uppercase text-sm px-6 py-3 rounded shadow hover:shadow-lg outline-none focus:outline-none mr-1 mb-1 ease-linear transition-all duration-150"
+                    classButoon="bg-red-500 text-white active:bg-red-600 font-bold uppercase text-sm px-6 py-3 rounded shadow hover:shadow-lg outline-none focus:outline-none mr-1 mb-1 ease-linear transition-all duration-150"
+                  />
+                  <Button
+                    text="Confirmar"
                     type="button"
+                    load={load}
                     onClick={() => deleteClient()}
-                  >
-                    Confirmar
-                  </button>
+                    classButoon="bg-blue-500 text-white active:bg-blue-600 font-bold uppercase text-sm px-6 py-3 rounded shadow hover:shadow-lg outline-none focus:outline-none mr-1 mb-1 ease-linear transition-all duration-150"
+                  />
                 </div>
               </div>
             </div>

@@ -9,35 +9,34 @@ import { UserI } from "../../models/user";
 
 export default function SigninUp() {
   const [showPassword, setShowPassword] = useState<boolean>(false);
-  const [des_nome, setNome] = useState<string>("");
-  const [des_email, setEmail] = useState<string>("");
-  const [des_senha, setSenha] = useState<string>("");
   const [des_senhaConfirm, setSenhaConfirm] = useState<string>("");
   const [load, setLoad] = useState<boolean>(false);
+  const [user, setUser] = useState<UserI>({} as UserI);
   const navigate = useNavigate();
 
   const handleSubmit = async (event: any) => {
     event.preventDefault();
 
-    if (des_senha !== des_senhaConfirm) {
+    if (user.des_senha !== des_senhaConfirm) {
       return toast.error("Senhas não conferem");
     }
 
     setLoad(true);
 
-    CreateUser({ des_email, des_nome, des_senha })
+    CreateUser(user)
       .then(async (res: UserI) => {
-        console.log(res);
         toast.success("Sucesso! Cadastro efetuado com sucesso");
 
-        const authUser = (await AuthSignin(
-          res.des_email,
-          des_senha
-        )) as AuthUserI;
-        if (authUser) {
-          setLoad(false);
-          return navigate("/client");
-        }
+        setTimeout(async () => {
+          const authUser = (await AuthSignin(
+            res.des_email,
+            user.des_senha
+          )) as AuthUserI;
+          if (authUser) {
+            setLoad(false);
+            return navigate("/client");
+          }
+        }, 1000);
       })
       .catch((err) => {
         toast.warn(
@@ -74,8 +73,8 @@ export default function SigninUp() {
                   </label>
                   <div className="mt-2">
                     <input
-                      defaultValue={des_nome}
-                      onChange={(e) => [setNome(e.target.value)]}
+                      defaultValue={user.des_nome}
+                      onChange={(e) => [(user.des_nome = e.target.value)]}
                       id="nome"
                       name="nome"
                       type="nome"
@@ -95,8 +94,8 @@ export default function SigninUp() {
                   </label>
                   <div className="mt-2">
                     <input
-                      defaultValue={des_email}
-                      onChange={(e) => [setEmail(e.target.value)]}
+                      defaultValue={user.des_email}
+                      onChange={(e) => [(user.des_email = e.target.value)]}
                       id="email"
                       name="email"
                       type="email"
@@ -116,8 +115,8 @@ export default function SigninUp() {
                   </label>
                   <div className="relative mt-2 rounded-md shadow-sm">
                     <input
-                      defaultValue={des_senha}
-                      onChange={(e) => [setSenha(e.target.value)]}
+                      defaultValue={user.des_senha}
+                      onChange={(e) => [(user.des_senha = e.target.value)]}
                       type={showPassword ? "text" : "password"}
                       name="password"
                       id="password"

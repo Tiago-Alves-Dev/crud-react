@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   ArrowsUpDownIcon,
   PencilSquareIcon,
@@ -9,20 +9,21 @@ import { ColumnsI } from "../models/columnsTable";
 export interface TableI {
   columns: Array<ColumnsI>;
   data: Array<any>;
-  fcorder?: any;
-  action: boolean;
-  fcEdit?: any;
-  fcRemove?: any;
+  thOption?: any;
+  tdOption?: any;
 }
 
-const Table = ({
-  columns,
-  data,
-  fcorder,
-  action,
-  fcEdit,
-  fcRemove,
-}: TableI) => {
+const Table = ({ columns, data, thOption, tdOption }: TableI) => {
+  const [order, setOrder] = useState<string>("DESC");
+
+  const sort = (colum: string) => {
+    if (order === "ASC") {
+      data = data.sort((a, b) => (a[colum] > b[colum] ? 1 : -1));
+    } else {
+      data = data.sort((a, b) => (a[colum] > b[colum] ? -1 : 1));
+    }
+  };
+
   return (
     <table className="w-full text-sm text-left text-gray-500 dark:text-gray-400">
       <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
@@ -34,7 +35,10 @@ const Table = ({
               ) : (
                 <div
                   className="flex items-center cursor-pointer gap-3"
-                  onClick={fcorder}
+                  onClick={() => {
+                    order == "DESC" ? setOrder("ASC") : setOrder("DESC");
+                    sort(item.colum);
+                  }}
                 >
                   {item.text}
                   <ArrowsUpDownIcon className="w-5 h-5 ml-1" />
@@ -42,7 +46,8 @@ const Table = ({
               )}
             </th>
           ))}
-          <th className={action ? "px-6 py-3" : "hidden"}>Ações</th>
+
+          {thOption}
         </tr>
       </thead>
       <tbody className={data.length > 0 ? "" : "hidden"}>
@@ -57,18 +62,7 @@ const Table = ({
               </td>
             ))}
 
-            <td className={action ? "px-6 py-4 text-right" : "hidden"}>
-              <div className="flex gap-5">
-                <PencilSquareIcon
-                  onClick={fcEdit}
-                  className="cursor-pointer w-8 h-8 ml-1 font-medium text-blue-600 dark:text-blue-500 hover:underline"
-                />
-                <TrashIcon
-                  onClick={fcRemove}
-                  className="cursor-pointer w-8 h-8 ml-1 font-medium text-blue-600 dark:text-blue-500 hover:underline"
-                />
-              </div>
-            </td>
+            {tdOption}
           </tr>
         ))}
       </tbody>

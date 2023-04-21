@@ -6,15 +6,20 @@ export interface CButton {
   type: "button" | "submit" | "reset" | undefined;
   load: boolean;
   Icon?: any;
+  classButoon?: string;
 }
 
-const Button = ({ text, onClick, type, load, Icon }: CButton) => {
+const Button = ({ text, onClick, type, load, Icon, classButoon }: CButton) => {
   return (
     <button
       disabled={load}
       type={type}
       onClick={onClick}
-      className="group relative flex w-full justify-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+      className={
+        classButoon
+          ? classButoon
+          : "group relative flex w-full justify-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+      }
     >
       <svg
         aria-hidden="true"
